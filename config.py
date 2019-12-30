@@ -13,6 +13,10 @@ class DefaultConfig(object):
     # optimization options
     loss = 'triplet'
     optim = 'adam'
+    train_set_path = ""
+    gallery_set_path = ""
+    query_set_path = ""
+    num_train_pids = None
     max_epoch = 60
     train_batch = 32 
     test_batch = 32
@@ -27,7 +31,8 @@ class DefaultConfig(object):
     num_instances = 4
     num_gpu = 1
     evaluate = False
-    savefig = None 
+    savefig = None
+    eval_flip = False
     re_ranking = False
 
     # model options

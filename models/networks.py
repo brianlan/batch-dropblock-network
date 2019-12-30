@@ -12,7 +12,7 @@ from sklearn.preprocessing import normalize
 from torch import nn, optim
 from torch.utils.data import dataloader
 from torchvision import transforms
-from torchvision.models.resnet import Bottleneck, resnet50
+from torchvision.models.resnet import Bottleneck, resnet50, resnet101
 from torchvision.transforms import functional
 
 from .resnet import ResNet

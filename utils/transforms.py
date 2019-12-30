@@ -55,7 +55,8 @@ class TrainTransform(object):
 
     def __call__(self, x):
         if self.data == 'person':
-            x = T.Resize((384, 128))(x)
+            # x = T.Resize((384, 128))(x)
+            x = T.Resize((256, 256))(x)
         elif self.data == 'car':
             x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
@@ -104,7 +105,8 @@ class TestTransform(object):
             x = pad_shorter(x)
             x = T.Resize((224, 224))(x)
         elif self.data == 'person':
-            x = T.Resize((384, 128))(x)
+            # x = T.Resize((384, 128))(x)
+            x = T.Resize((256, 256))(x)
 
         if self.flip:
             x = T.functional.hflip(x)
