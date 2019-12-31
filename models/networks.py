@@ -16,6 +16,7 @@ from torchvision.models.resnet import Bottleneck, resnet50, resnet101
 from torchvision.transforms import functional
 
 from .resnet import ResNet
+from .generalized_mean_pooling import GeneralizedMeanPooling
 
 def weights_init_kaiming(m):
     classname = m.__class__.__name__
@@ -167,8 +168,9 @@ class BFE(nn.Module):
             nn.ReLU()
         )
          # global branch
-        self.global_avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.global_softmax = nn.Linear(512, num_classes) 
+        # self.global_avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.global_avgpool = GeneralizedMeanPooling(3)
+        self.global_softmax = nn.Linear(512, num_classes)
         self.global_softmax.apply(weights_init_kaiming)
         self.global_reduction = copy.deepcopy(reduction)
         self.global_reduction.apply(weights_init_kaiming)

@@ -68,7 +68,7 @@ def train(**kwargs):
     summary_writer = SummaryWriter(osp.join(opt.save_dir, "tensorboard_log"))
 
     trainloader = DataLoader(
-        ImageData(dataset.train, TrainTransform(opt.datatype)),
+        ImageData(dataset.train, TrainTransform(opt.datatype, pad=opt.pad)),
         sampler=RandomIdentitySampler(dataset.train, opt.num_instances),
         batch_size=opt.train_batch,
         num_workers=opt.workers,
@@ -77,27 +77,27 @@ def train(**kwargs):
     )
 
     queryloader = DataLoader(
-        ImageData(dataset.query, TestTransform(opt.datatype)),
+        ImageData(dataset.query, TestTransform(opt.datatype, pad=opt.pad)),
         batch_size=opt.test_batch,
         num_workers=opt.workers,
         pin_memory=pin_memory,
     )
 
     galleryloader = DataLoader(
-        ImageData(dataset.gallery, TestTransform(opt.datatype)),
+        ImageData(dataset.gallery, TestTransform(opt.datatype, pad=opt.pad)),
         batch_size=opt.test_batch,
         num_workers=opt.workers,
         pin_memory=pin_memory,
     )
     queryFliploader = DataLoader(
-        ImageData(dataset.query, TestTransform(opt.datatype, True)),
+        ImageData(dataset.query, TestTransform(opt.datatype, flip=True, pad=opt.pad)),
         batch_size=opt.test_batch,
         num_workers=opt.workers,
         pin_memory=pin_memory,
     )
 
     galleryFliploader = DataLoader(
-        ImageData(dataset.gallery, TestTransform(opt.datatype, True)),
+        ImageData(dataset.gallery, TestTransform(opt.datatype, flip=True, pad=opt.pad)),
         batch_size=opt.test_batch,
         num_workers=opt.workers,
         pin_memory=pin_memory,
@@ -115,8 +115,7 @@ def train(**kwargs):
         model = ResNetBuilder(None, 1, True)
     elif opt.model_name == "bfe":
         if opt.datatype == "person":
-            # model = BFE(_num_train_pids, 1.0, 0.33)
-            model = BFE(_num_train_pids, 0.5, 0.5)
+            model = BFE(_num_train_pids, 1.0, 0.33)
         else:
             model = BFE(_num_train_pids, 0.5, 0.5)
     elif opt.model_name == "ide":

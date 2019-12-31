@@ -50,27 +50,28 @@ def pad_shorter(x):
     return new_im
 
 class TrainTransform(object):
-    def __init__(self, data):
+    def __init__(self, data, pad=False):
         self.data = data
+        self.pad = pad
 
     def __call__(self, x):
-        if self.data == 'person':
-            # x = T.Resize((384, 128))(x)
-            x = T.Resize((256, 256))(x)
-        elif self.data == 'car':
+        if self.pad:
             x = pad_shorter(x)
+
+        if self.data == "retail":
+            x = T.Resize((256, 256))(x)
+        elif self.data == 'person':
+            x = T.Resize((384, 128))(x)
+        elif self.data == 'car':
             x = T.Resize((256, 256))(x)
             x = T.RandomCrop((224, 224))(x)
         elif self.data == 'cub':
-            x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
             x = T.RandomCrop((224, 224))(x)
         elif self.data == 'clothes':
-            x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
             x = T.RandomCrop((224, 224))(x)
         elif self.data == 'product':
-            x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
             x = T.RandomCrop((224, 224))(x)
         elif self.data == 'cifar':
@@ -79,37 +80,48 @@ class TrainTransform(object):
         x = T.RandomHorizontalFlip()(x)
         x = T.ToTensor()(x)
         x = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(x)
+
         if self.data == 'person':
-            x = Cutout(probability = 0.5, size=64, mean=[0.0, 0.0, 0.0])(x)
+            x = Cutout(probability=0.5, size=64, mean=[0.0, 0.0, 0.0])(x)
+        elif self.data == 'retail':
+            x = Cutout(probability=0.5, size=64, mean=[0.0, 0.0, 0.0])(x)
         else:
-            x = RandomErasing(probability = 0.5, mean=[0.0, 0.0, 0.0])(x)
+            x = RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])(x)
+
         return x
 
 
 class TestTransform(object):
-    def __init__(self, data, flip=False):
+    def __init__(self, data, flip=False, pad=False):
         self.data = data
         self.flip = flip
+        self.pad = pad
 
     def __call__(self, x=None):
-        if self.data == 'cub':
+        if self.pad:
             x = pad_shorter(x)
+
+        if self.data == "retail":
+            # x = pad_shorter(x)
+            x = T.Resize((256, 256))(x)
+        elif self.data == 'cub':
+            # x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
         elif self.data == 'car':
-            #x = pad_shorter(x)
+            # x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
         elif self.data == 'clothes':
-            x = pad_shorter(x)
+            # x = pad_shorter(x)
             x = T.Resize((256, 256))(x)
         elif self.data == 'product':
-            x = pad_shorter(x)
+            # x = pad_shorter(x)
             x = T.Resize((224, 224))(x)
         elif self.data == 'person':
-            # x = T.Resize((384, 128))(x)
-            x = T.Resize((256, 256))(x)
+            x = T.Resize((384, 128))(x)
 
         if self.flip:
             x = T.functional.hflip(x)
+
         x = T.ToTensor()(x)
         x = T.Normalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225])(x)

@@ -33,6 +33,7 @@ class DefaultConfig(object):
     evaluate = False
     savefig = None
     eval_flip = False
+    pad = False
     re_ranking = False
 
     # model options
@@ -55,7 +56,10 @@ class DefaultConfig(object):
             setattr(self, k, v)
             if 'cls' in self.dataset:
                 self.mode='class'
-            if 'market' in self.dataset or 'cuhk' in self.dataset or 'duke' in self.dataset:
+
+            if 'retail' in self.dataset:
+                self.datatype = 'retail'
+            elif 'market' in self.dataset or 'cuhk' in self.dataset or 'duke' in self.dataset:
                 self.datatype = 'person'
             elif 'cub' in self.dataset:
                 self.datatype = 'cub'
