@@ -1,8 +1,10 @@
 # encoding: utf-8
+from pathlib import Path
+
 import numpy as np
 import os
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 from trainers.re_ranking import re_ranking as re_ranking_func
@@ -10,6 +12,12 @@ from trainers.re_ranking import re_ranking as re_ranking_func
 class ResNetEvaluator:
     def __init__(self, model):
         self.model = model
+
+    @staticmethod
+    def draw_out_box(pil_img, color):
+        draw = ImageDraw.Draw(pil_img)
+        draw.rectangle([(0, 0), (pil_img.size[0], pil_img.size[1])], outline=color, width=int(round(0.08 * pil_img.size[0])))
+        return pil_img
 
     def save_incorrect_pairs(self, distmat, queryloader, galleryloader, 
         g_pids, q_pids, g_camids, q_camids, savefig):
@@ -26,17 +34,18 @@ class ResNetEvaluator:
                     break
             if g_pids[index] == q_pids[i]:
                 continue
-            fig, axes =plt.subplots(1, 11, figsize=(12, 8))
+            fig, axes =plt.subplots(1, 11, figsize=(18, 4))
             img = queryloader.dataset.dataset[i][0]
             img = Image.open(img).convert('RGB')
-            axes[0].set_title(q_pids[i])
+            axes[0].set_title(f"<Query>\n{q_pids[i]:.0f}")
             axes[0].imshow(img)
             axes[0].set_axis_off()
             for j in range(10):
                 gallery_index = indices[i][j]
                 img = galleryloader.dataset.dataset[gallery_index][0]
                 img = Image.open(img).convert('RGB')
-                axes[j+1].set_title(g_pids[gallery_index])
+                img = self.draw_out_box(img, (0, 255, 0) if g_pids[gallery_index] == q_pids[i] else (255, 0, 0))
+                axes[j+1].set_title(f"{g_pids[gallery_index]:.0f}")
                 axes[j+1].set_axis_off()
                 axes[j+1].imshow(img)
             fig.savefig(os.path.join(savefig, '%d.png' %q_pids[i]))
@@ -141,7 +150,7 @@ class ResNetEvaluator:
             feature = self.model(inputs)
         return feature.cpu()
 
-    def eval_func_gpu(self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
+    def eval_func_gpu(self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank=20):
         num_q, num_g = distmat.size()
         if num_g < max_rank:
             max_rank = num_g
@@ -152,7 +161,7 @@ class ResNetEvaluator:
         #keep = g_camids[indices]  != q_camids.view([num_q, -1])
 
         results = []
-        num_rel = []
+        num_rel = []  # total number of samples in gallery (of a specific class)
         for i in range(num_q):
             m = matches[i][keep[i]]
             if m.any():
