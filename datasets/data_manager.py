@@ -9,17 +9,21 @@ import os
 
 
 class SKU:
-    def __init__(self, train_indices, gallery_indices, query_indices):
+    def __init__(self, train_indices, gallery_indices, query_indices, class_list_path=None):
         # self.image_dir = image_dir
         self.train, self.num_train_pids, self.num_train_imgs = self._read_indices(train_indices, init_camid=0)
-        self.gallery, self.num_gallery_pids, self.num_gallery_imgs = self._read_indices(gallery_indices, init_camid=0)
-        self.query, self.num_query_pids, self.num_query_imgs = self._read_indices(query_indices, init_camid=100000000)
+        self.gallery, self.num_gallery_pids, self.num_gallery_imgs = self._read_indices(gallery_indices, class_list_path=class_list_path, init_camid=0)
+        self.query, self.num_query_pids, self.num_query_imgs = self._read_indices(query_indices, class_list_path=class_list_path, init_camid=100000000)
 
-    def _read_indices(self, path, init_camid=0):
+    def _read_indices(self, path, class_list_path=None, init_camid=0):
         with open(path, "r") as f:
             data = [l.strip().split() for l in f]
         all_labels = sorted({d[1] for d in data})
-        label2id = {label: _id for _id, label in enumerate(all_labels)}
+        if class_list_path is None:
+            label2id = {label: _id for _id, label in enumerate(all_labels)}
+        else:
+            with open(class_list_path, "r") as f:
+                label2id = {c.strip(): i for i, c in enumerate(f)}
 
         # pretend all the images are taken from different cameras to make the code work.
         return [(d[0], label2id[d[1]], init_camid + i) for i, d in enumerate(data)], len(all_labels), len(data)

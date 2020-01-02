@@ -16,6 +16,7 @@ class DefaultConfig(object):
     train_set_path = ""
     gallery_set_path = ""
     query_set_path = ""
+    class_list_path = ""
     num_train_pids = None
     max_epoch = 60
     train_batch = 32 

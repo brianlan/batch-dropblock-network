@@ -61,6 +61,7 @@ def train(**kwargs):
         opt.train_set_path,
         opt.gallery_set_path,
         opt.query_set_path,
+        class_list_path=opt.class_list_path,
     )
 
     pin_memory = True if use_gpu else False
@@ -177,16 +178,16 @@ def train(**kwargs):
     reid_trainer = cls_tripletTrainer(opt, model, optimizer, criterion, summary_writer)
 
     def adjust_lr(optimizer, ep, init_lr=0.0001):
-        # if ep < 50:
-        #     lr = 1e-4 * (ep // 5 + 1)
-        # elif ep < 200:
-        #     lr = 1e-3
-        # elif ep < 300:
-        #     lr = 1e-4
-        # else:
-        #     lr = 1e-5
-        # for p in optimizer.param_groups:
-        #     p["lr"] = lr
+        if ep < 50:
+            lr = 1e-4 * (ep // 5 + 1)
+        elif ep < 200:
+            lr = 1e-3
+        elif ep < 300:
+            lr = 1e-4
+        else:
+            lr = 1e-5
+        for p in optimizer.param_groups:
+            p["lr"] = lr
         # if ep < 40:
         #     lr = 1e-4 * (ep // 4 + 1)
         # elif ep < 100:
@@ -197,16 +198,16 @@ def train(**kwargs):
         #     lr = 1e-5
         # for p in optimizer.param_groups:
         #     p["lr"] = lr
-        if ep < 25:
-            lr = init_lr * (ep // 2.5 + 1)
-        elif ep < 100:
-            lr = init_lr * 10
-        elif ep < 150:
-            lr = init_lr
-        else:
-            lr = init_lr * 0.1
-        for p in optimizer.param_groups:
-            p["lr"] = lr
+        # if ep < 25:
+        #     lr = init_lr * (ep // 2.5 + 1)
+        # elif ep < 100:
+        #     lr = init_lr * 10
+        # elif ep < 150:
+        #     lr = init_lr
+        # else:
+        #     lr = init_lr * 0.1
+        # for p in optimizer.param_groups:
+        #     p["lr"] = lr
 
     # save_checkpoint(
     #     {"state_dict": model.module.state_dict(), "epoch": -1},
