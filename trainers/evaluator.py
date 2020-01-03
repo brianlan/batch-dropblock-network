@@ -150,7 +150,7 @@ class ResNetEvaluator:
             feature = self.model(inputs)
         return feature.cpu()
 
-    def eval_func_gpu(self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank=20):
+    def eval_func_gpu(self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
         num_q, num_g = distmat.size()
         if num_g < max_rank:
             max_rank = num_g
@@ -161,14 +161,14 @@ class ResNetEvaluator:
         #keep = g_camids[indices]  != q_camids.view([num_q, -1])
 
         results = []
-        num_rel = []  # total number of samples in gallery (of a specific class)
+        # num_rel = []  # total number of samples in gallery (of a specific class)
         for i in range(num_q):
             m = matches[i][keep[i]]
             if m.any():
-                num_rel.append(m.sum())
+                # num_rel.append(m.sum())
                 results.append(m[:max_rank].unsqueeze(0))
         matches = torch.cat(results, dim=0).float()
-        num_rel = torch.Tensor(num_rel)
+        # num_rel = torch.Tensor(num_rel)
 
         cmc = matches.cumsum(dim=1)
         cmc[cmc > 1] = 1
@@ -176,7 +176,8 @@ class ResNetEvaluator:
 
         pos = torch.Tensor(range(1, max_rank+1))
         temp_cmc = matches.cumsum(dim=1) / pos * matches
-        AP = temp_cmc.sum(dim=1) / num_rel
+        # AP = temp_cmc.sum(dim=1) / num_rel
+        AP = temp_cmc.sum(dim=1) / max_rank
         mAP = AP.sum() / AP.size(0)
         return all_cmc.numpy(), mAP.item()
 
