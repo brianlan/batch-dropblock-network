@@ -156,28 +156,28 @@ class ResNetEvaluator:
             max_rank = num_g
             print("Note: number of gallery samples is quite small, got {}".format(num_g))
         _, indices = torch.sort(distmat, dim=1)
-        matches = g_pids[indices] == q_pids.view([num_q, -1]) 
-        keep = ~((g_pids[indices] == q_pids.view([num_q, -1])) & (g_camids[indices]  == q_camids.view([num_q, -1])))
-        #keep = g_camids[indices]  != q_camids.view([num_q, -1])
+        matches = g_pids[indices] == q_pids.view([num_q, -1])
+        keep = ~((g_pids[indices] == q_pids.view([num_q, -1])) & (g_camids[indices] == q_camids.view([num_q, -1])))
+        # keep = g_camids[indices]  != q_camids.view([num_q, -1])
 
         results = []
-        # num_rel = []  # total number of samples in gallery (of a specific class)
+        num_rel = []  # total number of samples in gallery (of a specific class)
         for i in range(num_q):
             m = matches[i][keep[i]]
-            if m.any():
-                # num_rel.append(m.sum())
+            if m.any():  # if there's no positive samples in gallery whose class is the same as the query, skip it.
+                num_rel.append(m.sum())
                 results.append(m[:max_rank].unsqueeze(0))
         matches = torch.cat(results, dim=0).float()
-        # num_rel = torch.Tensor(num_rel)
+        num_rel = torch.Tensor(num_rel)
 
         cmc = matches.cumsum(dim=1)
         cmc[cmc > 1] = 1
         all_cmc = cmc.sum(dim=0) / cmc.size(0)
 
-        pos = torch.Tensor(range(1, max_rank+1))
+        pos = torch.Tensor(range(1, max_rank + 1))
         temp_cmc = matches.cumsum(dim=1) / pos * matches
-        # AP = temp_cmc.sum(dim=1) / num_rel
-        AP = temp_cmc.sum(dim=1) / max_rank
+        actual_max_n_positive = torch.clamp(num_rel, max=max_rank)
+        AP = temp_cmc.sum(dim=1) / actual_max_n_positive
         mAP = AP.sum() / AP.size(0)
         return all_cmc.numpy(), mAP.item()
 
